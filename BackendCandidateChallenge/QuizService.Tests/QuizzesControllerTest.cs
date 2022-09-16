@@ -80,4 +80,52 @@ public class QuizzesControllerTest
             Assert.Equal(HttpStatusCode.NotFound, response.StatusCode);
         }
     }
+
+    [Fact]
+    public async Task QuizWithTwoQuestionTwoAnswer() {
+        const string QuizApiEndPoint = "/api/quizzes";
+        string quizUrl, questionUrl;
+        using (var testHost = new TestServer(new WebHostBuilder()
+                          .UseStartup<Startup>()))
+        {
+            HttpClient client = testHost.CreateClient();
+            StringContent content = new StringContent(JsonConvert.SerializeObject(new { Title = "New quiz" }));
+            content.Headers.ContentType = new MediaTypeHeaderValue("application/json");
+
+            HttpResponseMessage response = await client.PostAsync(new Uri(testHost.BaseAddress, $"{QuizApiEndPoint}"), content);
+            Assert.Equal(HttpStatusCode.Created, response.StatusCode);
+            Assert.NotNull(response.Headers.Location);
+
+            quizUrl = response.Headers.Location.OriginalString+ "/questions";
+
+            for (int i = 0; i < 2; i++)
+            {
+                content = new StringContent(JsonConvert.SerializeObject(new { Text = $"Question {i+1}" }));
+                content.Headers.ContentType = new MediaTypeHeaderValue("application/json");
+                response = await client.PostAsync(new Uri(testHost.BaseAddress, $"{quizUrl}"), content);
+
+                Assert.Equal(HttpStatusCode.Created, response.StatusCode);
+                Assert.NotNull(response.Headers.Location);
+                questionUrl = response.Headers.Location.OriginalString;
+                int correctAsnwerID = 0;
+                for(int j = 0; j < 2; j++)
+                {
+                    content = new StringContent(JsonConvert.SerializeObject(new { Text = $"Answer {j+1}" }));
+                    content.Headers.ContentType = new MediaTypeHeaderValue("application/json");
+                    response = await client.PostAsync(new Uri(testHost.BaseAddress, $"{questionUrl + "/answers"}"), content);
+                    string[] locationResponse = response.Headers.Location.OriginalString.Split("/");
+                    correctAsnwerID =  int.Parse(locationResponse[locationResponse.Length - 1]);
+
+                    Assert.Equal(HttpStatusCode.Created, response.StatusCode);
+                    Assert.NotNull(response.Headers.Location);
+                }
+
+                content = new StringContent(JsonConvert.SerializeObject(new { CorrectAnswerId = correctAsnwerID, Text = $"Question {i+1}" }));
+                content.Headers.ContentType = new MediaTypeHeaderValue("application/json");
+                response = await client.PutAsync(new Uri(testHost.BaseAddress, $"{questionUrl}"), content);
+
+                Assert.Equal(HttpStatusCode.NoContent, response.StatusCode);
+            }
+        }
+    }
 }

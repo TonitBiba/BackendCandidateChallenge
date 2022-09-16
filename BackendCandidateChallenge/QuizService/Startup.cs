@@ -8,6 +8,7 @@ using Microsoft.Data.Sqlite;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
+using QuizService.Repository;
 
 namespace QuizService;
 
@@ -25,6 +26,7 @@ public class Startup
     {
         services.AddMvc();
         services.AddSingleton(InitializeDb());
+        services.AddScoped<IQuizRepository, QuizRepository>();
         services.AddControllers();
     }
 

@@ -7,5 +7,6 @@ public class AnswerCreateModel
         Text = text;
     }
 
+    //TODO: I would add model validation controlls. [Required], [StringLength]
     public string Text { get; set; }
 }

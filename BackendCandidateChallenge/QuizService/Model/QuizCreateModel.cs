@@ -7,5 +7,6 @@ public class QuizCreateModel
         Title = title;
     }
 
+    //TODO: I would add model validation controlls. [Required], [StringLength]
     public string Title { get; set; }
 }
