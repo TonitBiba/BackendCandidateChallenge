@@ -85,6 +85,8 @@ public class QuizzesControllerTest
     public async Task QuizWithTwoQuestionTwoAnswer() {
         const string QuizApiEndPoint = "/api/quizzes";
         string quizUrl, questionUrl;
+        int quizId = 0;
+        
         using (var testHost = new TestServer(new WebHostBuilder()
                           .UseStartup<Startup>()))
         {
@@ -96,7 +98,10 @@ public class QuizzesControllerTest
             Assert.Equal(HttpStatusCode.Created, response.StatusCode);
             Assert.NotNull(response.Headers.Location);
 
-            quizUrl = response.Headers.Location.OriginalString+ "/questions";
+            quizUrl = response.Headers.Location.OriginalString;
+            string[] quizLocationResponse = response.Headers.Location.OriginalString.Split("/");
+            quizId = int.Parse(quizLocationResponse[quizLocationResponse.Length - 1]);
+            quizUrl += "/questions";
 
             for (int i = 0; i < 2; i++)
             {
@@ -113,8 +118,8 @@ public class QuizzesControllerTest
                     content = new StringContent(JsonConvert.SerializeObject(new { Text = $"Answer {j+1}" }));
                     content.Headers.ContentType = new MediaTypeHeaderValue("application/json");
                     response = await client.PostAsync(new Uri(testHost.BaseAddress, $"{questionUrl + "/answers"}"), content);
-                    string[] locationResponse = response.Headers.Location.OriginalString.Split("/");
-                    correctAsnwerID =  int.Parse(locationResponse[locationResponse.Length - 1]);
+                    string[] answerAocationResponse = response.Headers.Location.OriginalString.Split("/");
+                    correctAsnwerID =  int.Parse(answerAocationResponse[answerAocationResponse.Length - 1]);
 
                     Assert.Equal(HttpStatusCode.Created, response.StatusCode);
                     Assert.NotNull(response.Headers.Location);
@@ -126,6 +131,12 @@ public class QuizzesControllerTest
 
                 Assert.Equal(HttpStatusCode.NoContent, response.StatusCode);
             }
+
+            response = await client.GetAsync(new Uri(testHost.BaseAddress, $"{QuizApiEndPoint}/{quizId}"));
+            Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+            Assert.NotNull(response.Content);
+            var quiz = JsonConvert.DeserializeObject<QuizResponseModel>(await response.Content.ReadAsStringAsync());
+
         }
     }
 }
