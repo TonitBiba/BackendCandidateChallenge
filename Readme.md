@@ -1,3 +1,5 @@
+# Solution of the challenge:
+
 # Backend Candidate Challenge
 
 This is a simple challenge to be used as part of an interview process for .NET backend developers. The challenge is intended to be done offline at your own speed using the tools of your choice. There is no single correct solution, just a set of tasks to trigger some relevant discussions. Be prepared to present your solution when we meet.   
